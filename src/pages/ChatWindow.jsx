@@ -1,0 +1,119 @@
+import React, { useEffect, useState, useRef } from "react";
+import { getMessagesForConversation } from "../api";
+import { useParams } from "react-router";
+import { dummyConversations, dummyMessages } from "../dummy";
+
+
+const ChatWindow = () => {
+  const {id} = useParams();
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState("");
+  const messagesEndRef = useRef();
+  
+
+  const messagesFunc = async(conversationId)=>{
+     await getMessagesForConversation(conversationId)
+    
+  }
+  useEffect(() => {
+    messagesFunc(id)
+  }, []);
+
+  // useEffect(() => {
+  //   if (!socket) return;
+  //   const handler = (msg) => {
+  //     const convoId = msg.conversation?._id || msg.conversation;
+  //     if (convoId === conversation._id) {
+  //       setMessages((prev) => [...prev, msg]);
+  //     }
+  //   };
+  //   socket.on("new_message", handler);
+  //   return () => socket.off("new_message", handler);
+  // }, [socket, conversation]);
+
+  // useEffect(() => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // }, [messages]);
+
+  // const sendMessage = (e) => {
+  //   e.preventDefault();
+  //   if (!text.trim()) return;
+  //   socket.emit("send_message", {
+  //     conversationId: conversation._id,
+  //     senderId: currentUser._id,
+  //     text: text.trim(),
+  //   });
+  //   setText("");
+  // }; 
+
+ 
+  // const other =
+  //   conver.participants.find((p) => p._id !== currentUser._id) || {};
+
+  return (
+   <div className="flex flex-col h-screen">  
+  {/* Header */}
+  {/* <div className="flex items-center gap-3 px-4 py-3 border-b bg-white shadow-sm">
+    <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+      {other.name?.[0] || "U"}
+    </div>
+    <div>
+      <div className="font-semibold text-gray-800">{other.name}</div>
+      <div className="text-xs text-gray-500">{other.email}</div>
+    </div>
+  </div> */}
+
+  {/* Messages */}
+  {/* <div className="flex-1 overflow-y-auto p-4 bg-gray-100 space-y-3">
+    {messages.map((m) => (
+      <div
+        key={m._id || Math.random()}
+        className={`flex ${
+          m.sender._id === currentUser._id ? "justify-end" : "justify-start"
+        }`}
+      >
+        <div
+          className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${
+            m.sender._id === currentUser._id
+              ? "bg-blue-600 text-white rounded-br-none"
+              : "bg-white text-gray-800 rounded-bl-none"
+          }`}
+        >
+          <p className="text-sm">{m.text}</p>
+          <div className="text-[10px] mt-1 text-gray-400 text-right">
+            {new Date(m.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+        </div>
+      </div>
+    ))}
+    <div ref={messagesEndRef} />
+  </div> */}
+
+  {/* Input */}
+  {/* <form
+    // onSubmit={sendMessage}
+    className="p-3 border-t bg-white flex items-center gap-2"
+  >
+    <input
+      type="text"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      placeholder="Type a message..."
+      className="flex-1 border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+    <button
+      type="submit"
+      className="bg-blue-600 text-white px-5 py-2 rounded-full font-medium hover:bg-blue-700 transition"
+    >
+      Send
+    </button>
+  </form> */}
+</div>
+
+  );
+};
+
+export default ChatWindow;
