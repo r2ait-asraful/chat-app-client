@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createConversation, searchUsers } from '../api';
-import { getSocket } from '../socket';
+import { getSocket } from '../../socket';
+ 
 
 const SearchUsers = () => {
     const [query, setQuery] = useState("");
@@ -26,8 +27,7 @@ const SearchUsers = () => {
     try {
         socket.emit("create_conversation", { userId: user});
         setResults([]);
-        setQuery('');
-        alert('Conversation created')
+        setQuery(''); 
     } catch (error) {
         alert(error.response.data.message)
     }
