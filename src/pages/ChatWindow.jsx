@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getMessagesForConversation } from "../api";
 import { useParams } from "react-router";
-import { dummyConversations, dummyMessages } from "../dummy";
 import { getSocket } from "../../socket";
 
 
@@ -13,7 +12,7 @@ const ChatWindow = () => {
   const messagesEndRef = useRef();
 
   const [conversation, setConversation] = useState({});
-
+  
 
   const messagesFunc = async (conversationId) => {
     const data = await getMessagesForConversation(conversationId);
@@ -22,35 +21,41 @@ const ChatWindow = () => {
     setMessages(data?.messages)
   }
 
-const socket = getSocket();
 
-  // get previous messages and join room
-  useEffect(() => {
-    // fetch old messages + join room
-    messagesFunc(id)
+const [socket, setSocket] = useState(null);
+// get previous messages and join room
+useEffect(() => {
+  messagesFunc(id);
 
-    if (socket) {
-      socket.emit("join_conversation", id);
+  if (socket) {
+    socket.emit("join_conversation", id);
+  }
+}, [id]);
+
+// get socket once
+useEffect(() => {
+  const s = getSocket();
+  setSocket(s);
+
+  messagesFunc(id);
+  if (!socket) return;
+ socket.emit("join_conversation", id);
+  const handler = (msg) => {
+    console.log("new message:", msg);
+    if (msg.conversation.toString() === id.toString()) {
+      setMessages((prev) => [...prev, msg]);
     }
-  }, [id]);
+  };
 
+  socket.on("new_message", handler);
+  return () => socket.off("new_message", handler);
+}, [socket]);
 
-  // Listen for new messages
+// Auto scroll on new messages
   useEffect(() => {
-    if (!socket) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    const handler = (msg) => {
-      console.log("new message:", msg);
-
-      // ✅ update UI when message comes
-      if (msg.conversation.toString() === id.toString()) {
-        setMessages((prev) => [...prev, msg]);
-      }
-    };
-
-    socket.on("new_message", handler);
-    return () => socket.off("new_message", handler);
-  }, [socket, id]);
 
 
 // Send message
@@ -66,11 +71,10 @@ const socket = getSocket();
     setText("");
   };
 
+   
   console.log(socket);
-  // const other =
-  //   conver.participants.find((p) => p._id !== currentUser._id) || {};
 
-  if(!socket) return console.log('loading...');
+  if(!socket) return <div className="w-full h-[100vh]  flex justify-center items-center"> <h1>Loading...</h1></div>;
 
 
   return (
@@ -78,7 +82,7 @@ const socket = getSocket();
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b bg-white shadow-sm">
         <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-          {conversation?.name || "U"}
+          {conversation?.name?.[0] || "U"}
         </div>
         <div>
           <div className="font-semibold text-gray-800">{conversation?.name}</div>
@@ -91,21 +95,26 @@ const socket = getSocket();
         {messages.map((m) => (
           <div
             key={m?._id || Math.random()}
-            // className={`flex ${m?.sender?._id === currentUser?._id ? "justify-end" : "justify-start"
-            //   }`}
+            className={`flex ${
+              m?.sender?._id === socket?.user?.id
+                ? "justify-end"
+                : "justify-start"
+            }`}
           >
             <div
-              // className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${m?.sender?._id === currentUser?._id
-              //     ? "bg-blue-600 text-white rounded-br-none"
-              //     : "bg-white text-gray-800 rounded-bl-none"
-              //   }`}
+              className={`max-w-xs md:max-w-md p-3 rounded-2xl shadow-sm ${
+                m?.sender?._id === socket?.user?.id
+                  ? "bg-blue-600 text-white rounded-br-none"
+                  : "bg-white text-gray-800 rounded-bl-none"
+              }`}
             >
               <p className="text-sm">{m.text}</p>
               <div className="text-[10px] mt-1 text-gray-400 text-right">
-                {new Date(m.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {new Intl.DateTimeFormat(undefined, {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,  
+}).format(new Date(m.createdAt))}
               </div>
             </div>
           </div>
