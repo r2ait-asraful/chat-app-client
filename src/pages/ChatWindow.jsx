@@ -23,6 +23,7 @@ const ChatWindow = () => {
   }
 
 const socket = getSocket();
+
   // get previous messages and join room
   useEffect(() => {
     // fetch old messages + join room
@@ -33,41 +34,44 @@ const socket = getSocket();
     }
   }, [id]);
 
-// Listen for new messages
-useEffect(() => {
-  if (!socket) return;
 
-  const handler = (msg) => {
-    console.log("new message:", msg);
+  // Listen for new messages
+  useEffect(() => {
+    if (!socket) return;
 
-    // ✅ update UI when message comes
-    if (msg.conversation.toString() === id.toString()) {
-      setMessages((prev) => [...prev, msg]);
-    }
-  };
+    const handler = (msg) => {
+      console.log("new message:", msg);
 
-  socket.on("new_message", handler);
-  return () => socket.off("new_message", handler);
-}, [socket, id]);
+      // ✅ update UI when message comes
+      if (msg.conversation.toString() === id.toString()) {
+        setMessages((prev) => [...prev, msg]);
+      }
+    };
 
-console.log(messages);
+    socket.on("new_message", handler);
+    return () => socket.off("new_message", handler);
+  }, [socket, id]);
+
 
 // Send message
-const sendMessage = (e) => {
-  e.preventDefault();
-  if (!text.trim()) return;
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (!text.trim() || !socket) return;
 
-  socket.emit("send_message", {
-    conversationId: id,
-    text: text.trim(),
-  });
+    socket.emit("send_message", {
+      conversationId: id,
+      text: text.trim(),
+    });
 
-  setText("");
-};
+    setText("");
+  };
 
-
+  console.log(socket);
   // const other =
   //   conver.participants.find((p) => p._id !== currentUser._id) || {};
+
+  if(!socket) return console.log('loading...');
+
 
   return (
     <div className="flex flex-col h-screen">
